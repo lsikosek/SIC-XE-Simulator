@@ -1,0 +1,4 @@
+00000            test  START   0    
+                  
+00000  050002          LDX     #2    
+00003  3F2FFD    halt  J       halt    
