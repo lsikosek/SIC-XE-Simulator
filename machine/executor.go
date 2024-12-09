@@ -11,7 +11,9 @@ func invalidOpcode(opcode int) {
 
 }
 
-func invalidAddressing() {}
+func invalidAddressing() string {
+	return "Invalid address."
+}
 
 func (m Machine) fetch() int {
 
@@ -24,8 +26,8 @@ func (m Machine) fetch() int {
 
 func signedWordToInt(word int) int {
 	word &= 0x0FFF
-	if (word>0x07FF) {
-		return - ((^word) & 0x07FF)
+	if word > 0x07FF {
+		return -((^word) & 0x07FF)
 	}
 	return word
 }
@@ -63,17 +65,17 @@ func (m Machine) stepper(quitChan chan int, speedChan chan int, spd int) {
 
 }
 
-func (m Machine) execute() {
+func (m Machine) execute() string {
 	opcode := m.fetch()
 
 	if m.execF1(opcode) {
-		return
+		return ""
 	}
 
 	op := m.fetch()
 
 	if m.execF2(opcode, op) {
-		return
+		return ""
 	}
 
 	flags := NewFlags(opcode, op)
@@ -88,17 +90,40 @@ func (m Machine) execute() {
 		if !flags.isExtended() { // F3
 			operand = (operand << 8) | m.fetch()
 
-			if (flags.)
+			if flags.isPCRelative() && flags.isBaseRelative() {
+				return invalidAddressing()
+			}
+
+			if flags.isPCRelative() {
+				if operand > MAX_PC_REL_ADDR {
+					operand = -(^operand & MASK_PC_REL_ADDR) - 1
+				}
+				operand += m.registers[PC]
+			}
+
+			if flags.isBaseRelative() {
+				operand += m.registers[B]
+			}
+
+			if flags.isIndexed() && !flags.isSimple() {
+				return invalidAddressing()
+			}
+
+			if flags.isIndexed() {
+				operand += m.registers[X]
+			}
 
 		} else { // F4
 			temp1 := m.fetch()
 			temp2 := m.fetch()
 			operand = (operand << 16) | temp1<<8 | temp2
-			if (flags.isRelative()) {
+			if flags.isRelative() {
 				return invalidAddressing()
 			}
-			if (flags.isSimple() && flags.isIndexed()) {
-				operand += 
+			if !flags.isSimple() && flags.isIndexed() {
+				return invalidAddressing()
+			} else if flags.isIndexed() {
+				operand += m.registers[X]
 			}
 		}
 	}
@@ -123,8 +148,8 @@ func (m Machine) execute() {
 
 	//fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, operand)
 
-	m.execSICF3F4(opcode, nixbpe, operand)
-	return
+	m.execSICF3F4(opcode, flags, operand)
+	return ""
 }
 
 func (m Machine) execF1(opcode int) bool {
@@ -223,39 +248,31 @@ func (m Machine) execF2(opcode, op int) bool {
 
 }
 
-func (m Machine) execSICF3F4(opcode, nixbpe, operand int) bool {
+func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 
-	un := m.getAddressFromInstruction(nixbpe, operand)
+	value := operand
 
-	ni := nixbpe >> 4
-
-	var valW, valB int
+	if flags.isImmediate() || flags.isSIC() {
+		value = operand
+	} else if flags.isSimple() {
+		value = m.GetWord(operand)
+	} else if flags.isIndirect() {
+		value = m.GetWord(m.GetWord(operand))
+	}
 
 	rA := &m.registers[A]
 
-	fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, un)
-
-	switch ni {
-	case 0b_01:
-		valW = un
-		valB = un
-	case 0b_10:
-		valW = m.GetWord(m.GetWord(un))
-		valB = m.GetByte(m.GetWord(un))
-	default:
-		valW = m.GetWord(un)
-		valB = m.GetByte(un)
-	}
+	fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, value)
 
 	switch opcode {
 	case ADD:
-		m.registers[A] += valW
+		m.registers[A] += value
 	case AND:
-		m.registers[A] = m.registers[A] & valW
+		m.registers[A] = m.registers[A] & value
 
 	case COMP:
 
-		v1, v2 := m.registers[A], valW
+		v1, v2 := m.registers[A], value
 		if v1 < v2 {
 			m.registers[SW] = -1
 		} else if v1 > v2 {
@@ -266,89 +283,89 @@ func (m Machine) execSICF3F4(opcode, nixbpe, operand int) bool {
 	case COMPF:
 		notImplemented("COMPF")
 	case DIV:
-		*rA = *rA / valW
+		*rA = *rA / value
 	case DIVF:
 		notImplemented("DIVF")
 	case J:
-		fmt.Printf("UN: %d, valW: %d\n", un, valW)
-		m.registers[PC] = valW
+		fmt.Printf("UN: %d, value: %d\n", value, value)
+		m.registers[PC] = value
 	case JEQ:
 		if m.registers[SW] == 0 {
-			m.registers[PC] = valW
+			m.registers[PC] = value
 		}
 	case JGT:
 		if m.registers[SW] == 1 {
-			m.registers[PC] = valW
+			m.registers[PC] = value
 		}
 	case JLT:
 		if m.registers[SW] == -1 {
-			m.registers[PC] = valW
+			m.registers[PC] = value
 		}
 	case JSUB:
 		m.registers[L] = m.registers[PC]
-		m.registers[PC] = valW
+		m.registers[PC] = value
 	case LDA:
-		*rA = valW
+		*rA = value
 	case LDB:
-		m.registers[B] = valW
+		m.registers[B] = value
 	case LDCH:
 		*rA >>= 8
 		*rA <<= 8
-		*rA += valB
+		*rA |= (value & 0xFF)
 	case LDF:
 		notImplemented("LDF")
 	case LDL:
-		m.registers[L] = valW
+		m.registers[L] = value
 	case LDS:
-		m.registers[S] = valW
+		m.registers[S] = value
 	case LDT:
-		m.registers[T] = valW
+		m.registers[T] = value
 	case LDX:
-		m.registers[X] = valW
+		m.registers[X] = value
 	case LPS:
 		// TODO load processor status
 	case MUL:
-		*rA *= valW
+		*rA *= value
 	case MULF:
 		notImplemented("MULF")
 	case OR:
-		*rA |= valW
+		*rA |= value
 	case RD:
 		*rA >>= 8
 		*rA <<= 8
-		*rA += int(m.devices[valW].Read())
+		*rA += int(m.devices[value].Read())
 	case RSUB:
 		m.registers[PC] = m.registers[L]
 	//case SSK:
 	case STA:
-		m.setWord(un, *rA)
+		m.setWord(value, *rA)
 	case STB:
-		m.setWord(un, m.registers[B])
+		m.setWord(value, m.registers[B])
 	case STCH:
 		temp := *rA
 		temp <<= 16
 		temp >>= 16
-		m.setByte(un, temp)
+		m.setByte(value, temp)
 	case STF:
-		m.setWord(un, m.registers[F])
+		m.setWord(value, m.registers[F])
 	case STL:
-		m.setWord(un, m.registers[L])
+		m.setWord(value, m.registers[L])
 	case STS:
-		m.setWord(un, m.registers[S])
+		m.setWord(value, m.registers[S])
 	case STSW:
-		m.setWord(un, m.registers[SW])
+		m.setWord(value, m.registers[SW])
 	case STT:
-		m.setWord(un, m.registers[T])
+		m.setWord(value, m.registers[T])
 	case STX:
-		m.setWord(un, m.registers[X])
+		m.setWord(value, m.registers[X])
 	case STI:
-		// interval timer value <- valW
+		// interval timer value <- value
 	case SUB:
-		*rA -= valW
+		*rA -= value
 	case SUBF:
 		notImplemented("SUBF")
 	case TD:
-		if m.devices[valW].Test() {
+		if m.devices[value].Test() {
 			m.registers[SW] = -1
 		} else {
 			m.registers[SW] = 0
@@ -356,7 +373,7 @@ func (m Machine) execSICF3F4(opcode, nixbpe, operand int) bool {
 	case TIX:
 		m.registers[X]++
 		m.registers[X]++
-		v1, v2 := m.registers[X], valW
+		v1, v2 := m.registers[X], value
 		if v1 < v2 {
 			m.registers[SW] = -1
 		} else if v1 > v2 {
@@ -369,7 +386,7 @@ func (m Machine) execSICF3F4(opcode, nixbpe, operand int) bool {
 		temp <<= 16
 		temp >>= 16
 
-		m.devices[valW].Write(byte(temp))
+		m.devices[value].Write(byte(temp))
 	default:
 		return false
 	}

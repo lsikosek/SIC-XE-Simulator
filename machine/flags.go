@@ -14,6 +14,9 @@ const (
 	BASERELATIVE int = 0x40
 	PCRELATIVE   int = 0x20
 	EXTENDED     int = 0x10
+
+	MAX_PC_REL_ADDR  int = 2047
+	MASK_PC_REL_ADDR int = 0x7FF // 0111 1111 1111 ...
 )
 
 type Flags struct {
