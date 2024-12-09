@@ -1,5 +1,7 @@
 package machine
 
+import "fmt"
+
 const (
 	MAX_ADDRESS int = 0xb800
 	REG_NUM     int = 10
@@ -42,21 +44,32 @@ func NewMachine() Machine {
 	return m
 }
 
-func (m Machine) getByte(addr int) int {
-	return int(m.memory[addr])
+func validAddress(addr int) bool {
+	return (addr >= 0 && addr < MAX_ADDRESS)
+}
+
+func (m Machine) GetByte(addr int) int {
+	if !validAddress(addr) {
+		fmt.Printf("Invalid memory address: %d\n", addr)
+
+		return 0
+	}
+	return int(m.memory[addr]) & 0xFF
 }
 
 func (m Machine) setByte(addr, val int) {
 	m.memory[addr] = byte(val)
 }
 
-func (m Machine) getWord(addr int) int {
-	val := int(m.memory[addr])
-	val = val << 8
-	val += int(m.memory[addr+1])
-	val = val << 8
-	val += int(m.memory[addr+2])
-	return val
+func (m Machine) GetWord(addr int) int {
+	// val := int(m.memory[addr])
+	// val = val << 8
+	// val += int(m.memory[addr+1])
+	// val = val << 8
+	// val += int(m.memory[addr+2])
+	// return val
+
+	return (m.GetByte(addr) << 16) | (m.GetByte(addr+1) << 8) | (m.GetByte(addr + 2))
 }
 
 func (m Machine) setWord(addr, val int) {

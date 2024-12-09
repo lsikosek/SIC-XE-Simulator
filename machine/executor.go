@@ -18,7 +18,7 @@ func (m Machine) fetch() int {
 	ind := m.registers[PC]
 	m.registers[PC]++
 
-	return m.getByte(ind)
+	return m.GetByte(ind)
 
 }
 
@@ -83,7 +83,7 @@ func (m Machine) execute() {
 		operand += temp
 	}
 
-	fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, operand)
+	//fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, operand)
 
 	m.execSICF3F4(opcode, nixbpe, operand)
 	return
@@ -195,16 +195,18 @@ func (m Machine) execSICF3F4(opcode, nixbpe, operand int) bool {
 
 	rA := &m.registers[A]
 
+	fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, un)
+
 	switch ni {
 	case 0b_01:
 		valW = un
 		valB = un
 	case 0b_10:
-		valW = m.getWord(m.getWord(un))
-		valB = m.getByte(m.getWord(un))
+		valW = m.GetWord(m.GetWord(un))
+		valB = m.GetByte(m.GetWord(un))
 	default:
-		valW = m.getWord(un)
-		valB = m.getByte(un)
+		valW = m.GetWord(un)
+		valB = m.GetByte(un)
 	}
 
 	switch opcode {
@@ -230,6 +232,7 @@ func (m Machine) execSICF3F4(opcode, nixbpe, operand int) bool {
 	case DIVF:
 		notImplemented("DIVF")
 	case J:
+		fmt.Printf("UN: %d, valW: %d\n", un, valW)
 		m.registers[PC] = valW
 	case JEQ:
 		if m.registers[SW] == 0 {
@@ -335,7 +338,9 @@ func (m Machine) execSICF3F4(opcode, nixbpe, operand int) bool {
 	return true
 }
 
-func (m Machine) getAddressFromInstruction(nixbpe, operand int) int {
+//func (m Machine) computeAddress(nixbpe, operand int) int {}
+
+func (m Machine) getAddressFromInstruction(nixbpe, operand int) int { // PROBABLY WRONG
 	var un int = 0
 	var opLen int = 12 // 6 mest za opcode in 3 za nix
 
@@ -352,7 +357,7 @@ func (m Machine) getAddressFromInstruction(nixbpe, operand int) int {
 	un = operand
 
 	if ni == 0b_00 { // SIC
-		un += (nixbpe << opLen)
+		un |= (nixbpe << opLen)
 	}
 
 	if xBit {

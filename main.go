@@ -34,4 +34,8 @@ func main() {
 	fmt.Println(machine.RegisterNames)
 	fmt.Println(m.GetRegisters())
 
+	for i := 0; i <= 100; i += 3 {
+		fmt.Printf("%d ", m.GetWord(i))
+	}
+
 }
