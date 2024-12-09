@@ -22,6 +22,19 @@ func (m Machine) fetch() int {
 
 }
 
+func signedWordToInt(word int) int {
+	word &= 0x0FFF
+	if (word>0x07FF) {
+		return - ((^word) & 0x07FF)
+	}
+	return word
+}
+
+func signedDispToInt(disp int) int {
+	disp &= 0xFFF
+	return disp - 2048
+}
+
 func (m Machine) step() {
 	m.execute()
 }
@@ -63,7 +76,32 @@ func (m Machine) execute() {
 		return
 	}
 
-	operand := m.fetch()
+	flags := NewFlags(opcode, op)
+
+	var operand int
+
+	if flags.isSIC() { // SIC
+		operand = op & 0b_01111111 // dodamo vse, razen x
+	} else {
+		operand = op & 0b_00001111 // dodamo vse razen xbpe
+
+		if !flags.isExtended() { // F3
+			operand = (operand << 8) | m.fetch()
+
+			if (flags.)
+
+		} else { // F4
+			temp1 := m.fetch()
+			temp2 := m.fetch()
+			operand = (operand << 16) | temp1<<8 | temp2
+			if (flags.isRelative()) {
+				return invalidAddressing()
+			}
+			if (flags.isSimple() && flags.isIndexed()) {
+				operand += 
+			}
+		}
+	}
 
 	// Pripravimo operand
 	temp := (op & ((1 << 4) - 1)) << 8
