@@ -358,6 +358,7 @@ func (m Machine) getAddressFromInstruction(nixbpe, operand int) int { // PROBABL
 
 	if ni == 0b_00 { // SIC
 		un |= (nixbpe << opLen)
+		return un
 	}
 
 	if xBit {
@@ -373,6 +374,9 @@ func (m Machine) getAddressFromInstruction(nixbpe, operand int) int { // PROBABL
 	}
 
 	if pBit {
+		if un > 2047 {
+			un = -((^un) & 0xFFF) - 1
+		}
 		un += m.registers[PC]
 	}
 
