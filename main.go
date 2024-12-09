@@ -26,16 +26,20 @@ func main() {
 		fmt.Printf("Could not load %s\n", f.Name())
 	}
 
+	for i := 0; i <= 100; i += 3 {
+		fmt.Printf("%d ", m.GetWordInt(i))
+	}
+
 	m.Start()
 
 	time.Sleep(2 * time.Second)
 
 	m.Stop()
 	fmt.Println(machine.RegisterNames)
-	fmt.Println(m.GetRegisters())
+	fmt.Println(m.GetRegistersRaw())
 
 	for i := 0; i <= 100; i += 3 {
-		fmt.Printf("%d ", m.GetWord(i))
+		fmt.Printf("%d ", m.GetWordInt(i))
 	}
 
 }

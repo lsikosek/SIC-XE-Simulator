@@ -8,6 +8,12 @@ const (
 	DEV_NUM     int = 256
 )
 
+const (
+	MASK_WORD = 0xFFFFFF
+	MAX_WORD  = (1 << 23) - 1
+	MIN_WORD  = -(1 << 23)
+)
+
 var RegisterNames [REG_NUM]string = [REG_NUM]string{"A", "X", "L", "B", "S", "T", "F", "", "PC", "SW"}
 
 const (
@@ -58,7 +64,7 @@ func (m Machine) GetByte(addr int) int {
 }
 
 func (m Machine) setByte(addr, val int) {
-	m.memory[addr] = byte(val)
+	m.memory[addr] = byte(val & 0xFF)
 }
 
 func (m Machine) GetWord(addr int) int {
@@ -72,6 +78,10 @@ func (m Machine) GetWord(addr int) int {
 	return (m.GetByte(addr) << 16) | (m.GetByte(addr+1) << 8) | (m.GetByte(addr + 2))
 }
 
+func (m Machine) GetWordInt(addr int) int {
+	return signedWordToInt((m.GetByte(addr) << 16) | (m.GetByte(addr+1) << 8) | (m.GetByte(addr + 2)))
+}
+
 func (m Machine) setWord(addr, val int) {
 	m.memory[addr+2] = uint8(val % (1 << 8))
 	val = val >> 8
@@ -81,6 +91,32 @@ func (m Machine) setWord(addr, val int) {
 
 }
 
-func (m Machine) GetRegisters() []int {
+func intToSignedWord(val int) int {
+	if val >= 0 {
+		return val & MASK_WORD
+	}
+	return ^(-val - 1) & MASK_WORD
+}
+
+func signedWordToInt(word int) int {
+	if word <= MAX_WORD {
+		return word
+	}
+	return -(^word & MASK_WORD) - 1
+}
+
+func (m Machine) getReg(reg int) int {
+	return intToSignedWord(m.registers[reg])
+}
+
+func (m Machine) setReg(reg int, val int) {
+	m.registers[reg] = signedWordToInt(val)
+}
+
+func (m Machine) GetReg(reg int) int {
+	return signedWordToInt(m.registers[reg])
+}
+
+func (m Machine) GetRegistersRaw() []int {
 	return m.registers
 }

@@ -24,7 +24,7 @@ func (m Machine) fetch() int {
 
 }
 
-func signedWordToInt(word int) int {
+func signedDispToInt(word int) int {
 	word &= 0x0FFF
 	if word > 0x07FF {
 		return -((^word) & 0x07FF)
@@ -32,10 +32,10 @@ func signedWordToInt(word int) int {
 	return word
 }
 
-func signedDispToInt(disp int) int {
-	disp &= 0xFFF
-	return disp - 2048
-}
+// func signedDispToInt(disp int) int {
+// 	disp &= 0xFFF
+// 	return disp - 2048
+// }
 
 func (m Machine) step() {
 	m.execute()
@@ -98,11 +98,11 @@ func (m Machine) execute() string {
 			}
 
 			if flags.isPCRelative() {
-				fmt.Printf("operand: %d PC: %d\n", operand, m.registers[PC])
+				//fmt.Printf("operand: %d PC: %d\n", operand, m.registers[PC])
 				if operand > MAX_PC_REL_ADDR {
 					operand = -(^operand & MASK_PC_REL_ADDR) - 1
 				}
-				fmt.Printf("operand: %d PC: %d\n", operand, m.registers[PC])
+				//fmt.Printf("operand: %d PC: %d\n", operand, m.registers[PC])
 
 				operand += m.registers[PC]
 			}
@@ -275,13 +275,13 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 
 	switch opcode {
 	case ADD:
-		m.registers[A] += value
+		m.registers[A] += signedWordToInt(value)
 	case AND:
-		m.registers[A] = m.registers[A] & value
+		m.registers[A] = signedWordToInt(intToSignedWord(m.registers[A]) & value)
 
 	case COMP:
 
-		v1, v2 := m.registers[A], value
+		v1, v2 := m.registers[A], signedWordToInt(value)
 		if v1 < v2 {
 			m.registers[SW] = -1
 		} else if v1 > v2 {
@@ -292,14 +292,14 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 	case COMPF:
 		notImplemented("COMPF")
 	case DIV:
-		*rA = *rA / value
+		*rA = *rA / signedWordToInt(value)
 	case DIVF:
 		notImplemented("DIVF")
 	case J:
-		fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, value)
+		//fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, value)
 
-		fmt.Printf("UN: %d, value: %d, PC: %d\n", operand, value, m.registers[PC])
-		m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
+		//fmt.Printf("UN: %d, value: %d, PC: %d\n", operand, value, m.registers[PC])
+		m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT ||| might have to change to setReg(...)
 	case JEQ:
 		if m.registers[SW] == 0 {
 			m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
@@ -316,13 +316,13 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 		m.registers[L] = m.registers[PC]
 		m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
 	case LDA:
-		*rA = value
+		//*rA = value
+		m.setReg(A, value)
 	case LDB:
-		m.registers[B] = value
+		//m.registers[B] = value
+		m.setReg(B, value)
 	case LDCH:
-		*rA >>= 8
-		*rA <<= 8
-		*rA |= (value & 0xFF)
+		*rA = signedWordToInt((intToSignedWord(*rA) & ^(0xFF)) | (value & 0xFF))
 	case LDF:
 		notImplemented("LDF")
 	case LDL:
@@ -350,6 +350,7 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 	//case SSK:
 	case STA:
 		m.setWord(operand, *rA) //value --- IF IT DOESNT WORK, REVERT
+		fmt.Printf("A: %d\n", m.GetReg(A))
 	case STB:
 		m.setWord(operand, m.registers[B]) //value --- IF IT DOESNT WORK, REVERT
 	case STCH:
