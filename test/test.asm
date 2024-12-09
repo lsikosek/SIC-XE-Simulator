@@ -1,4 +1,4 @@
 test    START 0
-
-        LDX #2
-halt    J halt
+        LDA #0
+halt    ADD #1
+        J halt

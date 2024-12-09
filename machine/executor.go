@@ -56,7 +56,7 @@ func (m Machine) stepper(quitChan chan int, speedChan chan int, spd int) {
 			dur = 1000000000 / (spd)
 			timeDuration = time.Duration(dur)
 		case <-check:
-			fmt.Println(cnt)
+			//fmt.Println(cnt)
 			cnt++
 			m.step()
 			check = time.After(timeDuration)
@@ -84,6 +84,9 @@ func (m Machine) execute() string {
 
 	if flags.isSIC() { // SIC
 		operand = op & 0b_01111111 // dodamo vse, razen x
+		if flags.isIndexed() {
+			operand += m.registers[X]
+		}
 	} else {
 		operand = op & 0b_00001111 // dodamo vse razen xbpe
 
@@ -95,9 +98,12 @@ func (m Machine) execute() string {
 			}
 
 			if flags.isPCRelative() {
+				fmt.Printf("operand: %d PC: %d\n", operand, m.registers[PC])
 				if operand > MAX_PC_REL_ADDR {
 					operand = -(^operand & MASK_PC_REL_ADDR) - 1
 				}
+				fmt.Printf("operand: %d PC: %d\n", operand, m.registers[PC])
+
 				operand += m.registers[PC]
 			}
 
@@ -128,25 +134,27 @@ func (m Machine) execute() string {
 		}
 	}
 
-	// Pripravimo operand
-	temp := (op & ((1 << 4) - 1)) << 8
-	operand += temp
+	// // Pripravimo operand
+	// temp := (op & ((1 << 4) - 1)) << 8
+	// operand += temp
 
-	// Pripravimo nibble in opcode
-	nixbpe := op >> 4
-	temp = (opcode & 3) << 4
-	nixbpe += temp
+	// // Pripravimo nibble in opcode
+	// nixbpe := op >> 4
+	// temp = (opcode & 3) << 4
+	// nixbpe += temp
 
-	opcode >>= 2
-	opcode <<= 2 //LATEST CHANGEEEEEE
+	// opcode >>= 2
+	// opcode <<= 2 //LATEST CHANGEEEEEE
 
-	if nixbpe%2 == 1 {
-		temp = m.fetch()
-		operand <<= 8
-		operand += temp
-	}
+	// if nixbpe%2 == 1 {
+	// 	temp = m.fetch()
+	// 	operand <<= 8
+	// 	operand += temp
+	// }
 
 	//fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, operand)
+
+	opcode &= ^3
 
 	m.execSICF3F4(opcode, flags, operand)
 	return ""
@@ -250,19 +258,20 @@ func (m Machine) execF2(opcode, op int) bool {
 
 func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 
-	value := operand
+	var value int
 
-	if flags.isImmediate() || flags.isSIC() {
+	if flags.isImmediate() {
 		value = operand
+	} else if flags.isSIC() {
+		value = m.GetWord(operand)
 	} else if flags.isSimple() {
 		value = m.GetWord(operand)
 	} else if flags.isIndirect() {
-		value = m.GetWord(m.GetWord(operand))
+		operand = m.GetWord(operand)
+		value = m.GetWord(operand)
 	}
 
 	rA := &m.registers[A]
-
-	fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, value)
 
 	switch opcode {
 	case ADD:
@@ -287,23 +296,25 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 	case DIVF:
 		notImplemented("DIVF")
 	case J:
-		fmt.Printf("UN: %d, value: %d\n", value, value)
-		m.registers[PC] = value
+		fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, value)
+
+		fmt.Printf("UN: %d, value: %d, PC: %d\n", operand, value, m.registers[PC])
+		m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
 	case JEQ:
 		if m.registers[SW] == 0 {
-			m.registers[PC] = value
+			m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
 		}
 	case JGT:
 		if m.registers[SW] == 1 {
-			m.registers[PC] = value
+			m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
 		}
 	case JLT:
 		if m.registers[SW] == -1 {
-			m.registers[PC] = value
+			m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
 		}
 	case JSUB:
 		m.registers[L] = m.registers[PC]
-		m.registers[PC] = value
+		m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
 	case LDA:
 		*rA = value
 	case LDB:
@@ -338,28 +349,29 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 		m.registers[PC] = m.registers[L]
 	//case SSK:
 	case STA:
-		m.setWord(value, *rA)
+		m.setWord(operand, *rA) //value --- IF IT DOESNT WORK, REVERT
 	case STB:
-		m.setWord(value, m.registers[B])
+		m.setWord(operand, m.registers[B]) //value --- IF IT DOESNT WORK, REVERT
 	case STCH:
 		temp := *rA
 		temp <<= 16
 		temp >>= 16
-		m.setByte(value, temp)
+		m.setByte(operand, temp) //value --- IF IT DOESNT WORK, REVERT
 	case STF:
-		m.setWord(value, m.registers[F])
+		m.setWord(operand, m.registers[F]) //value --- IF IT DOESNT WORK, REVERT
 	case STL:
-		m.setWord(value, m.registers[L])
+		m.setWord(operand, m.registers[L]) //value --- IF IT DOESNT WORK, REVERT
 	case STS:
-		m.setWord(value, m.registers[S])
+		m.setWord(operand, m.registers[S]) //value --- IF IT DOESNT WORK, REVERT
 	case STSW:
-		m.setWord(value, m.registers[SW])
+		m.setWord(operand, m.registers[SW]) //value --- IF IT DOESNT WORK, REVERT
 	case STT:
-		m.setWord(value, m.registers[T])
+		m.setWord(operand, m.registers[T]) //value --- IF IT DOESNT WORK, REVERT
 	case STX:
-		m.setWord(value, m.registers[X])
+		m.setWord(operand, m.registers[X]) //value --- IF IT DOESNT WORK, REVERT
 	case STI:
 		// interval timer value <- value
+		notImplemented("STI")
 	case SUB:
 		*rA -= value
 	case SUBF:
