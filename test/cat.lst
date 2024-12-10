@@ -1,0 +1,15 @@
+00000            prog  START   0    
+                  
+00000  D90000    loop  RD      #0    
+00003  1D0030          SUB     #48    
+00006  290000          COMP    #0    
+00009  332009          JEQ     halt    
+0000C  190030          ADD     #48    
+0000F  DD0001          WD      #1    
+00012  3F2FEB          J       loop    
+                  
+                  
+00015  3F2FFD    halt  J       halt    
+                  
+                  
+00018                  END     prog    

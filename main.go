@@ -32,7 +32,10 @@ func main() {
 
 	m.Start()
 
-	time.Sleep(2 * time.Second)
+	for {
+		time.Sleep(100)
+	}
+	//time.Sleep(5 * time.Second)
 
 	m.Stop()
 	fmt.Println(machine.RegisterNames)

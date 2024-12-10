@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 )
 
@@ -18,18 +17,11 @@ func ReadString(r bufio.Reader, len int) string {
 }
 
 func main() {
-	r := bufio.NewReader(os.Stdin)
-	t, _, _ := r.ReadRune()
+	w := bufio.NewWriter(os.Stdout)
 
-	fmt.Print(t)
+	var c byte = 'a'
+	w.WriteByte(c)
 
-	str := ReadString(*r, 6)
-
-	fmt.Print(str)
-
-	if temp, _, _ := r.ReadRune(); temp == '\r' {
-		r.ReadRune()
-		fmt.Println("Found")
-	}
+	w.Flush()
 
 }
