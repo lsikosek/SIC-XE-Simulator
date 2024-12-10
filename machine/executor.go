@@ -326,21 +326,24 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 	case LDF:
 		notImplemented("LDF")
 	case LDL:
-		m.registers[L] = value
+		//m.registers[L] = value
+		m.setReg(L, value)
 	case LDS:
-		m.registers[S] = value
+		//m.registers[S] = value
+		m.setReg(S, value)
 	case LDT:
-		m.registers[T] = value
+		//m.registers[T] = value
+		m.setReg(T, value)
 	case LDX:
 		m.registers[X] = value
 	case LPS:
 		// TODO load processor status
 	case MUL:
-		*rA *= value
+		*rA *= signedWordToInt(value)
 	case MULF:
 		notImplemented("MULF")
 	case OR:
-		*rA |= value
+		*rA = signedWordToInt(intToSignedWord(*rA) | value)
 	case RD:
 		*rA >>= 8
 		*rA <<= 8
@@ -349,7 +352,7 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 		m.registers[PC] = m.registers[L]
 	//case SSK:
 	case STA:
-		m.setWord(operand, *rA) //value --- IF IT DOESNT WORK, REVERT
+		m.setWord(operand, intToSignedWord(*rA)) //value --- IF IT DOESNT WORK, REVERT
 		fmt.Printf("A: %d\n", m.GetReg(A))
 	case STB:
 		m.setWord(operand, m.registers[B]) //value --- IF IT DOESNT WORK, REVERT
