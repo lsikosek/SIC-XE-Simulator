@@ -80,7 +80,7 @@ func (m Machine) loadSection(r *bufio.Reader) bool {
 	start := simUtils.ReadWord(r)
 	m.registers[PC] = start
 
-	fmt.Println(m.registers)
+	//fmt.Println(m.registers)
 
 	return true
 }

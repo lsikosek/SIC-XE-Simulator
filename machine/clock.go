@@ -1,7 +1,7 @@
 package machine
 
 var running bool = false
-var speed int = 100
+var speed int = 10000
 
 var quitChannel chan int = make(chan int)
 var speedChannel chan int = make(chan int, 1)
