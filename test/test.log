@@ -1,11 +1,12 @@
 ***** Section <default> *****
-Stats: size=6  blocks=6  symbols=2  literals=0  relocations=0
+Stats: size=18  blocks=18  symbols=3  literals=0  relocations=0
 Blocks
     name        start   size  #ins #dir #sto
-    <default>   00000  00006     2    1    0
+    <default>   00000  00012     6    1    0
 Symbols
     name        hex       dec  scope     kind      type      description
-    halt     000003         3  local     relative  code      label
+    halt     000009         9  local     relative  code      label
+    out      00000C        12  local     relative  code      label
     test     000000         0  exported  relative  code      label
 Literals
     label   definition

@@ -1,6 +1,7 @@
 package machine
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -287,6 +288,7 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 	// Operand is now the address, value is the value
 
 	switch opcode {
+	// SETS -------------------------------------------
 	case STA:
 		m.setWord(operand, m.getReg(A))
 	case STX:
@@ -305,7 +307,7 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 		m.setWord(operand, m.getReg(T))
 	case STSW:
 		m.setWord(operand, m.getReg(SW))
-
+	// JUMPS ---------------------------------------------
 	case JEQ:
 		if m.equalSW() {
 			m.setReg(PC, operand)
@@ -325,8 +327,49 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 	case JSUB:
 		m.setReg(L, m.getReg(PC))
 		m.setReg(PC, operand)
+	// LOADS ----------------------------------
 	case LDA:
 		m.setReg(A, value)
+	case LDX:
+		m.setReg(X, value)
+	case LDL:
+		m.setReg(L, value)
+	case LDCH:
+		m.setAByte(value >> 16)
+	case LDB:
+		m.setReg(B, value)
+	case LDS:
+		m.setReg(S, value)
+	case LDF:
+		notImplemented("LDF")
+	case LDT:
+		m.setReg(T, value)
+
+	// ARITHMETIC ------------------------------------------
+	case ADD:
+		m.setReg(A, m.getReg(A)+value)
+	case SUB:
+		m.setReg(A, m.getReg(A)-value)
+	case MUL:
+		m.setReg(A, m.getReg(A)*value)
+	case DIV:
+		svalue := signedWordToInt(value)
+		if svalue == 0 {
+			fmt.Println("NaN encountered. (Division by zero)")
+		} else {
+			m.setReg(A, m.GetRegInt(A)/svalue)
+		}
+	case AND:
+		m.setReg(A, m.getReg(A)&value)
+	case OR:
+		m.setReg(A, m.getReg(A)|value)
+	case COMP:
+		m.setSWForCompare(m.GetRegInt(A), signedWordToInt(value))
+	case TIX:
+		m.setReg(X, m.getReg(X)+1)
+		m.setSWForCompare(m.GetRegInt(X), signedWordToInt(value))
+
+	// IO ---------------------------------------------------
 	default:
 		return false
 
