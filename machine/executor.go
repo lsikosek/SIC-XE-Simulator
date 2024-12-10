@@ -161,9 +161,9 @@ func (m Machine) execute() string {
 	// 	operand += temp
 	// }
 
-	//fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, operand)
-
 	opcode &= ^3
+
+	//fmt.Printf("%s(%d) %d\n", InstructionMap[opcode], m.getReg(PC), operand)
 
 	m.execSICF3F4(opcode, flags, operand)
 	return ""
@@ -298,8 +298,8 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 
 	}
 	// DEBUG
-	// if opcode == J {
-	// 	fmt.Printf("PC: %d, value: %d, valueByte: %d, operand: %d\nisSimple: %b\n", m.getReg(PC), value, valueByte, operand, flags.isSimple())
+	// if opcode == LDB {
+	// 	fmt.Printf("PC: %d, value: %d, valueByte: %d, operand: %d\nni: %b", m.getReg(PC), value, valueByte, operand, flags.ni)
 	// }
 	// DEBUG
 	//rA := &m.registers[A]
@@ -394,9 +394,11 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 
 	// IO ---------------------------------------------------
 	case RD:
-		m.setAByte(int(m.devices[valueByte].Read())) // device index is specified by byte at address "operand"
+		//m.setAByte(int(m.devices[valueByte].Read()))
+		m.setAByte(int(m.readDevice(valueByte))) // device index is specified by byte at address "operand"
 	case WD:
-		m.devices[valueByte].Write(uint8(m.getAByte()))
+		//m.devices[valueByte].Write(uint8(m.getAByte()))
+		m.writeDevice(valueByte, uint8(m.getAByte()))
 	case TD:
 		if m.devices[valueByte].Test() {
 			m.setSWForCompare(-1, 0)

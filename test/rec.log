@@ -1,0 +1,51 @@
+***** Section <default> *****
+Stats: size=3253  blocks=3253  symbols=19  literals=0  relocations=21
+Blocks
+    name        start   size  #ins #dir #sto
+    <default>   00000  00CB5    81    5    3
+Symbols
+    name         hex       dec  scope     kind      type      description
+    fac       000021        33  local     relative  code      label
+    facEnd    000043        67  local     relative  code      label
+    halt      00001E        30  local     relative  code      label
+    loop      000003         3  local     relative  code      label
+    n         000CB2      3250  local     relative  data      label
+    prnt      00004C        76  local     relative  code      label
+    prntEnd   000074       116  local     relative  code      label
+    prog      000000         0  exported  relative  code      label
+    rd        000091       145  local     relative  code      label
+    rdA1      0000BB       187  local     relative  data      label
+    rdA2      0000BE       190  local     relative  data      label
+    rdEnd     0000B5       181  local     relative  code      label
+    rdLoop    000094       148  local     relative  code      label
+    sinit     0000C1       193  local     relative  code      label
+    sp        000CAC      3244  local     relative  data      label
+    spop      0000E2       226  local     relative  code      label
+    spush     0000D0       208  local     relative  code      label
+    stack     0000F4       244  local     relative  data      label
+    tempA     000CAF      3247  local     relative  data      label
+Literals
+    label   definition
+Relocations
+    address length flag symbol
+    00022        3
+    00030        3
+    0003F        3
+    00047        3
+    0004D        3
+    00053        3
+    00059        3
+    00080        3
+    00086        3
+    0008C        3
+    000C2        3
+    000C8        3
+    000CB        3
+    000D1        3
+    000D4        3
+    000DA        3
+    000DD        3
+    000E3        3
+    000E6        3
+    000EC        3
+    000EF        3

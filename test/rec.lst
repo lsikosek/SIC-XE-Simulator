@@ -1,0 +1,144 @@
+00000            prog     START   0    
+                  
+                  
+                  
+00000  4B20BE             JSUB    sinit    
+                  
+                  
+                  
+00003  4B208B    loop     JSUB    rd    
+00006  290000             COMP    #0    
+00009  332012             JEQ     halt    
+0000C  4B2012             JSUB    fac    
+0000F  4B203A             JSUB    prnt    
+                  
+00012  D900FA             RD      #250    
+                  
+                  
+00015  010020             LDA     #32    
+00018  DD0001             WD      #1    
+                  
+0001B  3F2FE5             J       loop    
+                  
+                  
+0001E  3F2FFD    halt     J       halt    
+                  
+00021  160CAC    fac      STL     @sp    
+00024  4B20A9             JSUB    spush    
+                  
+                  
+00027  290001             COMP    #1    
+0002A  332016             JEQ     facEnd    
+                  
+0002D  AC03               RMO     A,B    
+0002F  7A0CAC             STB     @sp    
+00032  4B209B             JSUB    spush    
+                  
+00035  1D0001             SUB     #1    
+00038  4B2FE6             JSUB    fac    
+0003B  4B20A4             JSUB    spop    
+0003E  6A0CAC             LDB     @sp    
+                  
+00041  9830               MULR    B,A    
+                  
+00043  4B209C    facEnd   JSUB    spop    
+00046  0A0CAC             LDL     @sp    
+00049  4F0000             RSUB        
+                  
+0004C  160CAC    prnt     STL     @sp    
+0004F  4B207E             JSUB    spush    
+00052  0E0CAC             STA     @sp    
+00055  4B2078             JSUB    spush    
+00058  7A0CAC             STB     @sp    
+0005B  4B2072             JSUB    spush    
+                  
+0005E  AC03               RMO     A,B    
+00060  25000A             DIV     #10    
+00063  21000A             MUL     #10    
+00066  9403               SUBR    A,B    
+00068  25000A             DIV     #10    
+                  
+0006B  290000             COMP    #0    
+0006E  332003             JEQ     prntEnd    
+00071  4B2FD8             JSUB    prnt    
+                  
+00074  AC30      prntEnd  RMO     B,A    
+00076  190030             ADD     #48    
+00079  DD0001             WD      #1    
+0007C  4B2063             JSUB    spop    
+0007F  6A0CAC             LDB     @sp    
+00082  4B205D             JSUB    spop    
+00085  020CAC             LDA     @sp    
+00088  4B2057             JSUB    spop    
+0008B  0A0CAC             LDL     @sp    
+0008E  4F0000             RSUB        
+                  
+                  
+00091  010000    rd       LDA     #0    
+00094  0F2024    rdLoop   STA     rdA1    
+00097  010000             LDA     #0    
+0009A  D900FA             RD      #250    
+                  
+0009D  1D0030             SUB     #48    
+000A0  290000             COMP    #0    . primerjamo ze z 0, da se lahko odlocimo, ce nadaljujemo loop ali ne
+000A3  3B200F             JLT     rdEnd    . ce je prebrana vrednost new line, space ali eof, gremo ven
+000A6  0F2015             STA     rdA2    
+000A9  03200F             LDA     rdA1    
+000AC  21000A             MUL     #10    
+000AF  1B200C             ADD     rdA2    
+000B2  3F2FDF             J       rdLoop    
+                  
+                  
+                  
+                  
+                  . RMO A, B . A se overwrita, zato ga shranimo v B
+                  . RD #250 . ker 250 = FA
+                  . SUB #48
+                  . COMP #0 . primerjamo ze z 0, da se lahko odlocimo, ce nadaljujemo loop ali ne
+                  . JLT rdEnd . ce je prebrana vrednost new line, space ali eof, gremo ven
+                  
+                  . ADDR A, B . Dodamo prebrano vrednost v akumulirano
+                  
+                  . RMO B, A . premaknemo B v A da lahko mnozimo z 10
+                  
+                  
+                  . MUL #10
+                  . J loopRd
+                  
+                  
+000B5  032003    rdEnd    LDA     rdA1    
+000B8  4F0000             RSUB        
+                  
+000BB  000000    rdA1     RESW    1    
+000BE  000000    rdA2     RESW    1    
+                  
+                  
+                  
+                  
+                  
+000C1  0F0CAF    sinit    STA     tempA    . nastavi vrednost sp na zacetek sklada
+000C4  01202D             LDA     #stack    
+000C7  0F0CAC             STA     sp    
+000CA  030CAF             LDA     tempA    
+000CD  4F0000             RSUB        
+                  
+                  
+                  
+000D0  0F0CAF    spush    STA     tempA    
+000D3  030CAC             LDA     sp    
+000D6  190003             ADD     #3    
+000D9  0F0CAC             STA     sp    
+000DC  030CAF             LDA     tempA    
+000DF  4F0000             RSUB        
+000E2  0F0CAF    spop     STA     tempA    
+000E5  030CAC             LDA     sp    
+000E8  1D0003             SUB     #3    
+000EB  0F0CAC             STA     sp    
+000EE  030CAF             LDA     tempA    
+000F1  4F0000             RSUB        
+000F4  00....00  stack    RESW    1000    
+00CAC  000000    sp       WORD    0    
+00CAF  000000    tempA    WORD    0    
+00CB2  000004    n        WORD    4    
+                  
+00CB5                     END     prog    

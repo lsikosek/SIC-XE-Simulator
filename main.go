@@ -26,7 +26,7 @@ func main() {
 	}
 
 	for i := 0; i <= 100; i += 3 {
-		fmt.Printf("%d ", m.GetWordInt(i))
+		//fmt.Printf("%d ", m.GetWordInt(i))
 	}
 
 	m.Start()
@@ -35,10 +35,11 @@ func main() {
 	}
 	//time.Sleep(5 * time.Second)
 
+	fmt.Println()
 	fmt.Println(machine.RegisterNames)
 	fmt.Println(m.GetRegistersRaw())
 
-	for i := 0; i <= 100; i += 3 {
+	for i := 0; i <= 130; i += 3 {
 		fmt.Printf("%d ", m.GetWordInt(i))
 	}
 

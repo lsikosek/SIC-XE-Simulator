@@ -35,7 +35,7 @@ func (d Device) Read() uint8 {
 }
 
 func (d Device) Test() bool {
-	return true
+	return (d.output != nil || d.input != nil)
 }
 
 func newInputDevice() Device {

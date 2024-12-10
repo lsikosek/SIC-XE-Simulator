@@ -60,7 +60,7 @@ func (f Flags) isSimple() bool {
 }
 
 func (f Flags) isIndirect() bool {
-	return f.ni == 0b_01
+	return f.ni == 0b_10
 }
 
 func (f Flags) isImmediate() bool {

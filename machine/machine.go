@@ -1,6 +1,10 @@
 package machine
 
-import "fmt"
+import (
+	"bufio"
+	"fmt"
+	"os"
+)
 
 const (
 	MAX_ADDRESS int = 0xb800
@@ -48,6 +52,47 @@ func NewMachine() Machine {
 	m.devices[2] = newErrorDevice()
 
 	return m
+}
+
+func (m Machine) initDevice(ind int) {
+	fileName := fmt.Sprintf("%X.dev", ind)
+
+	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0o600) // add the filemode argument to this function
+
+	if err != nil {
+		panic("Failed to create file: " + err.Error())
+	}
+
+	//defer file.Close()
+
+	input := bufio.NewReader(file)
+	output := bufio.NewWriter(file)
+
+	m.devices[ind].input = input
+	m.devices[ind].output = output
+
+}
+
+func (m Machine) readDevice(ind int) byte {
+	if m.devices[ind].input == nil {
+		m.initDevice(ind)
+	}
+
+	res := m.devices[ind].Read()
+
+	//fmt.Printf("Reading dev %d, val %d\n", ind, res)
+
+	return res
+}
+
+func (m Machine) writeDevice(ind int, b byte) {
+	if m.devices[ind].output == nil {
+		m.initDevice(ind)
+	}
+
+	//fmt.Printf("Writing dev %d, val %d\n", ind, b)
+
+	m.devices[ind].Write(b)
 }
 
 func validAddress(addr int) bool {

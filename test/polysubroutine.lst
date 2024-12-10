@@ -1,0 +1,34 @@
+00000            first   START   0    
+                  
+00000  4B2015            JSUB    horner    
+                  
+                  
+00003  3F2FFD    halt    J       halt    
+                  
+                  . podatki
+00006  000002    x       WORD    2    
+00009  000001    val     WORD    1    
+0000C  000000    stack   RESW    1    
+0000F  000000    in      WORD    0    
+00012  000005            WORD    5    
+00015  00002A            WORD    42    
+00018            lastin  EQU     *    
+00018            len     EQU     lastin-in    
+                  
+                  
+00018  0F2FF1    horner  STA     stack    
+0001B  032FEB            LDA     val    
+0001E  232FE5            MUL     x    
+00021  190002            ADD     #2    
+00024  232FDF            MUL     x    
+00027  190003            ADD     #3    
+0002A  232FD9            MUL     x    
+0002D  190004            ADD     #4    
+00030  232FD3            MUL     x    
+00033  190005            ADD     #5    
+00036  0F2FD0            STA     val    
+00039  032FD0            LDA     stack    
+0003C  4F0000            RSUB        
+                  
+                  
+0003F                    END     first    

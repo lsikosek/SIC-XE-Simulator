@@ -24,7 +24,7 @@ func (m Machine) loadSection(r *bufio.Reader) bool {
 	codeAddress := simUtils.ReadWord(r)
 	codeLength := simUtils.ReadWord(r)
 
-	fmt.Printf("codeAddress: %d, codeLength: %d\n", codeAddress, codeLength)
+	//fmt.Printf("codeAddress: %d, codeLength: %d\n", codeAddress, codeLength)
 
 	// NE VEM ČE JE POTREBNO BRATI NEW LINE -- TESTIRAJ ... TESTIRAL - SE IZKAZE DA JE POTREBNO
 	if temp, _, _ := r.ReadRune(); temp == '\r' {

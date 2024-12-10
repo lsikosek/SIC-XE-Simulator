@@ -1,0 +1,19 @@
+00000            prog   START   0    
+                  
+00000  01200C           LDA     #stack    
+00003  0F2006           STA     sp    
+                  
+00006  6A2003           LDB     @sp    
+                  
+00009  3F2FFD    halt   J       halt    
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+                  
+0000C  000000    sp     WORD    0    
+                  
+0000F  000007    stack  WORD    7    
