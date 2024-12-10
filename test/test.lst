@@ -1,4 +1,3 @@
 00000            test  START   0    
-00000  010000          LDA     #0    
-00003  190001    halt  ADD     #1    
-00006  3F2FFA          J       halt    
+00000  010007          LDA     #7    
+00003  3F2FFD    halt  J       halt    

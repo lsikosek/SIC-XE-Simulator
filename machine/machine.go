@@ -106,17 +106,29 @@ func signedWordToInt(word int) int {
 }
 
 func (m Machine) getReg(reg int) int {
-	return intToSignedWord(m.registers[reg])
+	return (m.registers[reg])
 }
 
 func (m Machine) setReg(reg int, val int) {
-	m.registers[reg] = signedWordToInt(val)
+	m.registers[reg] = val
 }
 
-func (m Machine) GetReg(reg int) int {
+func (m Machine) GetRegInt(reg int) int {
 	return signedWordToInt(m.registers[reg])
 }
 
 func (m Machine) GetRegistersRaw() []int {
 	return m.registers
+}
+
+func (m Machine) equalSW() bool {
+	return m.registers[SW] == 0
+}
+
+func (m Machine) greaterSW() bool {
+	return m.registers[SW] == 1
+}
+
+func (m Machine) lessSW() bool {
+	return m.registers[SW] == -1
 }

@@ -1,7 +1,6 @@
 package machine
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -256,6 +255,18 @@ func (m Machine) execF2(opcode, op int) bool {
 
 }
 
+func (m Machine) setSWForCompare(i1, i2 int) {
+	temp := i1 - i2
+
+	if temp < 0 {
+		temp = -1
+	} else if temp > 0 {
+		temp = 1
+	}
+
+	m.setReg(SW, temp)
+}
+
 func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 
 	var value int
@@ -271,141 +282,189 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 		value = m.GetWord(operand)
 	}
 
-	rA := &m.registers[A]
+	//rA := &m.registers[A]
+
+	// Operand is now the address, value is the value
 
 	switch opcode {
-	case ADD:
-		m.registers[A] += signedWordToInt(value)
-	case AND:
-		m.registers[A] = signedWordToInt(intToSignedWord(m.registers[A]) & value)
+	case STA:
+		m.setWord(operand, m.getReg(A))
+	case STX:
+		m.setWord(operand, m.getReg(X))
+	case STL:
+		m.setWord(operand, m.getReg(L))
+	case STCH:
+		m.setByte(operand, m.getReg(A)&0xFF)
+	case STB:
+		m.setByte(operand, m.getReg(B))
+	case STS:
+		m.setWord(operand, m.getReg(S))
+	case STF:
+		m.setWord(operand, m.getReg(F))
+	case STT:
+		m.setWord(operand, m.getReg(T))
+	case STSW:
+		m.setWord(operand, m.getReg(SW))
 
-	case COMP:
-
-		v1, v2 := m.registers[A], signedWordToInt(value)
-		if v1 < v2 {
-			m.registers[SW] = -1
-		} else if v1 > v2 {
-			m.registers[SW] = 1
-		} else {
-			m.registers[SW] = 0
-		}
-	case COMPF:
-		notImplemented("COMPF")
-	case DIV:
-		*rA = *rA / signedWordToInt(value)
-	case DIVF:
-		notImplemented("DIVF")
-	case J:
-		//fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, value)
-
-		//fmt.Printf("UN: %d, value: %d, PC: %d\n", operand, value, m.registers[PC])
-		m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT ||| might have to change to setReg(...)
 	case JEQ:
-		if m.registers[SW] == 0 {
-			m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
+		if m.equalSW() {
+			m.setReg(PC, operand)
 		}
 	case JGT:
-		if m.registers[SW] == 1 {
-			m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
+		if m.greaterSW() {
+			m.setReg(PC, operand)
 		}
 	case JLT:
-		if m.registers[SW] == -1 {
-			m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
+		if m.lessSW() {
+			m.setReg(PC, operand)
 		}
-	case JSUB:
-		m.registers[L] = m.registers[PC]
-		m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
-	case LDA:
-		//*rA = value
-		m.setReg(A, value)
-	case LDB:
-		//m.registers[B] = value
-		m.setReg(B, value)
-	case LDCH:
-		*rA = signedWordToInt((intToSignedWord(*rA) & ^(0xFF)) | (value & 0xFF))
-	case LDF:
-		notImplemented("LDF")
-	case LDL:
-		//m.registers[L] = value
-		m.setReg(L, value)
-	case LDS:
-		//m.registers[S] = value
-		m.setReg(S, value)
-	case LDT:
-		//m.registers[T] = value
-		m.setReg(T, value)
-	case LDX:
-		m.registers[X] = value
-	case LPS:
-		// TODO load processor status
-	case MUL:
-		*rA *= signedWordToInt(value)
-	case MULF:
-		notImplemented("MULF")
-	case OR:
-		*rA = signedWordToInt(intToSignedWord(*rA) | value)
-	case RD:
-		*rA >>= 8
-		*rA <<= 8
-		*rA += int(m.devices[value].Read())
+	case J:
+		m.setReg(PC, operand)
 	case RSUB:
-		m.registers[PC] = m.registers[L]
-	//case SSK:
-	case STA:
-		m.setWord(operand, intToSignedWord(*rA)) //value --- IF IT DOESNT WORK, REVERT
-		fmt.Printf("A: %d\n", m.GetReg(A))
-	case STB:
-		m.setWord(operand, m.registers[B]) //value --- IF IT DOESNT WORK, REVERT
-	case STCH:
-		temp := *rA
-		temp <<= 16
-		temp >>= 16
-		m.setByte(operand, temp) //value --- IF IT DOESNT WORK, REVERT
-	case STF:
-		m.setWord(operand, m.registers[F]) //value --- IF IT DOESNT WORK, REVERT
-	case STL:
-		m.setWord(operand, m.registers[L]) //value --- IF IT DOESNT WORK, REVERT
-	case STS:
-		m.setWord(operand, m.registers[S]) //value --- IF IT DOESNT WORK, REVERT
-	case STSW:
-		m.setWord(operand, m.registers[SW]) //value --- IF IT DOESNT WORK, REVERT
-	case STT:
-		m.setWord(operand, m.registers[T]) //value --- IF IT DOESNT WORK, REVERT
-	case STX:
-		m.setWord(operand, m.registers[X]) //value --- IF IT DOESNT WORK, REVERT
-	case STI:
-		// interval timer value <- value
-		notImplemented("STI")
-	case SUB:
-		*rA -= value
-	case SUBF:
-		notImplemented("SUBF")
-	case TD:
-		if m.devices[value].Test() {
-			m.registers[SW] = -1
-		} else {
-			m.registers[SW] = 0
-		}
-	case TIX:
-		m.registers[X]++
-		m.registers[X]++
-		v1, v2 := m.registers[X], value
-		if v1 < v2 {
-			m.registers[SW] = -1
-		} else if v1 > v2 {
-			m.registers[SW] = 1
-		} else {
-			m.registers[SW] = 0
-		}
-	case WD:
-		temp := *rA
-		temp <<= 16
-		temp >>= 16
-
-		m.devices[value].Write(byte(temp))
+		m.setReg(PC, m.getReg(L))
+	case JSUB:
+		m.setReg(L, m.getReg(PC))
+		m.setReg(PC, operand)
+	case LDA:
+		m.setReg(A, value)
 	default:
 		return false
+
 	}
+
+	// switch opcode {
+	// case ADD:
+	// 	m.registers[A] += signedWordToInt(value)
+	// case AND:
+	// 	m.registers[A] = signedWordToInt(intToSignedWord(m.registers[A]) & value)
+
+	// case COMP:
+
+	// 	v1, v2 := m.registers[A], signedWordToInt(value)
+	// 	if v1 < v2 {
+	// 		m.registers[SW] = -1
+	// 	} else if v1 > v2 {
+	// 		m.registers[SW] = 1
+	// 	} else {
+	// 		m.registers[SW] = 0
+	// 	}
+	// case COMPF:
+	// 	notImplemented("COMPF")
+	// case DIV:
+	// 	*rA = *rA / signedWordToInt(value)
+	// case DIVF:
+	// 	notImplemented("DIVF")
+	// case J:
+	// 	//fmt.Printf("%s(%X) %d\n", InstructionMap[opcode], opcode, value)
+
+	// 	//fmt.Printf("UN: %d, value: %d, PC: %d\n", operand, value, m.registers[PC])
+	// 	m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT ||| might have to change to setReg(...)
+	// case JEQ:
+	// 	if m.registers[SW] == 0 {
+	// 		m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
+	// 	}
+	// case JGT:
+	// 	if m.registers[SW] == 1 {
+	// 		m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
+	// 	}
+	// case JLT:
+	// 	if m.registers[SW] == -1 {
+	// 		m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
+	// 	}
+	// case JSUB:
+	// 	m.registers[L] = m.registers[PC]
+	// 	m.registers[PC] = operand //value --- IF IT DOESNT WORK, REVERT
+	// case LDA:
+	// 	//*rA = value
+	// 	m.setReg(A, value)
+	// case LDB:
+	// 	//m.registers[B] = value
+	// 	m.setReg(B, value)
+	// case LDCH:
+	// 	*rA = signedWordToInt((intToSignedWord(*rA) & ^(0xFF)) | (value & 0xFF))
+	// case LDF:
+	// 	notImplemented("LDF")
+	// case LDL:
+	// 	//m.registers[L] = value
+	// 	m.setReg(L, value)
+	// case LDS:
+	// 	//m.registers[S] = value
+	// 	m.setReg(S, value)
+	// case LDT:
+	// 	//m.registers[T] = value
+	// 	m.setReg(T, value)
+	// case LDX:
+	// 	m.registers[X] = value
+	// case LPS:
+	// 	// TODO load processor status
+	// case MUL:
+	// 	*rA *= signedWordToInt(value)
+	// case MULF:
+	// 	notImplemented("MULF")
+	// case OR:
+	// 	*rA = signedWordToInt(intToSignedWord(*rA) | value)
+	// case RD:
+	// 	*rA >>= 8
+	// 	*rA <<= 8
+	// 	*rA += int(m.devices[value].Read())
+	// case RSUB:
+	// 	m.registers[PC] = m.registers[L]
+	// //case SSK:
+	// case STA:
+	// 	m.setWord(operand, intToSignedWord(*rA)) //value --- IF IT DOESNT WORK, REVERT
+	// 	fmt.Printf("A: %d\n", m.GetReg(A))
+	// case STB:
+	// 	m.setWord(operand, m.registers[B]) //value --- IF IT DOESNT WORK, REVERT
+	// case STCH:
+	// 	temp := *rA
+	// 	temp <<= 16
+	// 	temp >>= 16
+	// 	m.setByte(operand, temp) //value --- IF IT DOESNT WORK, REVERT
+	// case STF:
+	// 	m.setWord(operand, m.registers[F]) //value --- IF IT DOESNT WORK, REVERT
+	// case STL:
+	// 	m.setWord(operand, m.registers[L]) //value --- IF IT DOESNT WORK, REVERT
+	// case STS:
+	// 	m.setWord(operand, m.registers[S]) //value --- IF IT DOESNT WORK, REVERT
+	// case STSW:
+	// 	m.setWord(operand, m.registers[SW]) //value --- IF IT DOESNT WORK, REVERT
+	// case STT:
+	// 	m.setWord(operand, m.registers[T]) //value --- IF IT DOESNT WORK, REVERT
+	// case STX:
+	// 	m.setWord(operand, m.registers[X]) //value --- IF IT DOESNT WORK, REVERT
+	// case STI:
+	// 	// interval timer value <- value
+	// 	notImplemented("STI")
+	// case SUB:
+	// 	*rA -= value
+	// case SUBF:
+	// 	notImplemented("SUBF")
+	// case TD:
+	// 	if m.devices[value].Test() {
+	// 		m.registers[SW] = -1
+	// 	} else {
+	// 		m.registers[SW] = 0
+	// 	}
+	// case TIX:
+	// 	m.registers[X]++
+	// 	m.registers[X]++
+	// 	v1, v2 := m.registers[X], value
+	// 	if v1 < v2 {
+	// 		m.registers[SW] = -1
+	// 	} else if v1 > v2 {
+	// 		m.registers[SW] = 1
+	// 	} else {
+	// 		m.registers[SW] = 0
+	// 	}
+	// case WD:
+	// 	temp := *rA
+	// 	temp <<= 16
+	// 	temp >>= 16
+
+	// 	m.devices[value].Write(byte(temp))
+	// default:
+	// 	return false
+	// }
 	return true
 }
 
