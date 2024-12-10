@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"simulator/machine"
-	"time"
 )
 
 func main() {
@@ -32,12 +31,10 @@ func main() {
 
 	m.Start()
 
-	for {
-		time.Sleep(100)
+	for m.IsRunning() {
 	}
 	//time.Sleep(5 * time.Second)
 
-	m.Stop()
 	fmt.Println(machine.RegisterNames)
 	fmt.Println(m.GetRegistersRaw())
 

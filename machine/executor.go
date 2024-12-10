@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var instructionSize int = 0
+
 func notImplemented(mnemonic string) {}
 
 func invalidOpcode(opcode int) {
@@ -69,12 +71,15 @@ func (m Machine) execute() string {
 	opcode := m.fetch()
 
 	if m.execF1(opcode) {
+		instructionSize = 1
+
 		return ""
 	}
 
 	op := m.fetch()
 
 	if m.execF2(opcode, op) {
+		instructionSize = 2
 		return ""
 	}
 
@@ -91,6 +96,8 @@ func (m Machine) execute() string {
 		operand = op & 0b_00001111 // dodamo vse razen xbpe
 
 		if !flags.isExtended() { // F3
+			instructionSize = 3
+
 			operand = (operand << 8) | m.fetch()
 
 			if flags.isPCRelative() && flags.isBaseRelative() {
@@ -120,6 +127,8 @@ func (m Machine) execute() string {
 			}
 
 		} else { // F4
+			instructionSize = 4
+
 			temp1 := m.fetch()
 			temp2 := m.fetch()
 			operand = (operand << 16) | temp1<<8 | temp2
@@ -289,9 +298,9 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 
 	}
 	// DEBUG
-	if opcode == STA {
-		fmt.Printf("A: %d, value: %d, valueByte: %d, operand: %d\nisSimple: %b\n", m.getReg(A), value, valueByte, operand, flags.isSimple())
-	}
+	// if opcode == J {
+	// 	fmt.Printf("PC: %d, value: %d, valueByte: %d, operand: %d\nisSimple: %b\n", m.getReg(PC), value, valueByte, operand, flags.isSimple())
+	// }
 	// DEBUG
 	//rA := &m.registers[A]
 
@@ -331,6 +340,10 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 			m.setReg(PC, operand)
 		}
 	case J:
+		// HALT CONDITION
+		if m.getReg(PC) == operand+instructionSize {
+			m.Stop()
+		}
 		m.setReg(PC, operand)
 	case RSUB:
 		m.setReg(PC, m.getReg(L))

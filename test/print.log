@@ -1,0 +1,18 @@
+***** Section <default> *****
+Stats: size=29  blocks=29  symbols=7  literals=0  relocations=0
+Blocks
+    name        start   size  #ins #dir #sto
+    <default>   00000  0001D     8    5    0
+Symbols
+    name        hex       dec  scope     kind      type      description
+    halt     00000E        14  local     relative  code      label
+    lastin   00001D        29  local     absolute  notlabel  *
+    len      000006         6  local     absolute  notlabel  lastin-txt
+    loop     000002         2  local     relative  code      label
+    putc     000011        17  local     relative  code      label
+    puts     000000         0  exported  relative  code      label
+    txt      000017        23  local     relative  data      label
+Literals
+    label   definition
+Relocations
+    address length flag symbol

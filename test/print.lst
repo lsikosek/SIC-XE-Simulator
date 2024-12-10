@@ -1,0 +1,19 @@
+00000            puts    START   0    
+00000  B410              CLEAR   X    
+00002  53A012    loop    LDCH    txt,X    . nalozi en bajt v spodnji bajt registra a
+00005  4B2009            JSUB    putc    . WD #1 . write device 1
+                  
+00008  2D0006            TIX     #len    
+0000B  3B2FF4            JLT     loop    
+                  
+0000E  3F2FFD    halt    J       halt    
+                  
+                  . rutina, ki izpise znak v registru A
+00011  DD00AA    putc    WD      #170    
+00014  4F0000            RSUB        
+                  
+00017  53....45  txt     BYTE    C'SIC/XE'    
+0001D            lastin  EQU     *    
+0001D            len     EQU     lastin-txt    
+                  
+0001D                    END     puts    
