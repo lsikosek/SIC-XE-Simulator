@@ -270,19 +270,29 @@ func (m Machine) setSWForCompare(i1, i2 int) {
 
 func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 
-	var value int
+	var value, valueByte int
 
 	if flags.isImmediate() {
 		value = operand
+		valueByte = operand
 	} else if flags.isSIC() {
 		value = m.GetWord(operand)
+		valueByte = m.GetByte(operand)
 	} else if flags.isSimple() {
+		//fmt.Println("yes")
 		value = m.GetWord(operand)
+		valueByte = m.GetByte(operand)
 	} else if flags.isIndirect() {
 		operand = m.GetWord(operand)
 		value = m.GetWord(operand)
-	}
+		valueByte = m.GetByte(operand)
 
+	}
+	// DEBUG
+	if opcode == MUL {
+		fmt.Printf("ni: %b, xbpe: %b, value: %d, valueByte: %d, operand: %d\nisSimple: %b\n", flags.ni, flags.xbpe, value, valueByte, operand, flags.isSimple())
+	}
+	// DEBUG
 	//rA := &m.registers[A]
 
 	// Operand is now the address, value is the value
@@ -296,9 +306,9 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 	case STL:
 		m.setWord(operand, m.getReg(L))
 	case STCH:
-		m.setByte(operand, m.getReg(A)&0xFF)
+		m.setByte(operand, m.getAByte())
 	case STB:
-		m.setByte(operand, m.getReg(B))
+		m.setWord(operand, m.getReg(B))
 	case STS:
 		m.setWord(operand, m.getReg(S))
 	case STF:
@@ -335,7 +345,7 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 	case LDL:
 		m.setReg(L, value)
 	case LDCH:
-		m.setAByte(value >> 16)
+		m.setAByte(valueByte)
 	case LDB:
 		m.setReg(B, value)
 	case LDS:
@@ -370,6 +380,33 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 		m.setSWForCompare(m.GetRegInt(X), signedWordToInt(value))
 
 	// IO ---------------------------------------------------
+	case RD:
+		m.setAByte(int(m.devices[valueByte].Read())) // device index is specified by byte at address "operand"
+	case WD:
+		m.devices[valueByte].Write(uint8(m.getAByte()))
+	case TD:
+		if m.devices[valueByte].Test() {
+			m.setSWForCompare(-1, 0)
+		} else {
+			m.setSWForCompare(0, 0)
+		}
+	// FLOATS ----------------------------------------
+	case ADDF:
+		notImplemented("ADDF")
+	case SUBF:
+		notImplemented("SUBF")
+	case MULF:
+		notImplemented("MULF")
+	case DIVF:
+		notImplemented("DIVF")
+	case COMPF:
+		notImplemented("COMPF")
+
+	// MISC --------------------------------------
+	case LPS:
+		notImplemented("LPS")
+	case STI:
+		notImplemented("STI")
 	default:
 		return false
 

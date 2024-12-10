@@ -1,11 +1,12 @@
-00000            test  START   0    
-00000  010007          LDA     #7    
+00000            test   START   0    
+00000  01000D           LDA     #13    
                   
-00003  290008          COMP    #8    
+00003  232003           MUL     multi    
                   
-00006  372003          JGT     out    
-00009  3F2FFD    halt  J       halt    
                   
-0000C  690002    out   LDB     #2    
-0000F  3F2FF7          J       halt    
+                  
+00006  3F2FFD    halt   J       halt    
+                  
+                  
+00009  000004    multi  WORD    4    
                   

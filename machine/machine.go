@@ -119,6 +119,10 @@ func (m Machine) setAByte(val int) {
 	m.registers[A] |= val
 }
 
+func (m Machine) getAByte() int {
+	return m.registers[A] & 0xFF
+}
+
 func (m Machine) GetRegInt(reg int) int {
 	return signedWordToInt(m.registers[reg])
 }

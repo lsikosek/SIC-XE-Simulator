@@ -1,11 +1,12 @@
 test    START 0
-        LDA #7
+        LDA #13
 
-        COMP #8
+        MUL multi
 
-        JGT out
+
+
 halt    J halt
 
-out     LDB #2
-        J halt
+
+multi   WORD 4
 

@@ -52,19 +52,19 @@ func (f Flags) isIndexed() bool {
 }
 
 func (f Flags) isSIC() bool {
-	return (f.ni&SIC != 0)
+	return f.ni == 0b_00
 }
 
 func (f Flags) isSimple() bool {
-	return (f.ni&SIMPLE != 0)
+	return f.ni == 0b_11
 }
 
 func (f Flags) isIndirect() bool {
-	return (f.ni&INDIRECT != 0)
+	return f.ni == 0b_01
 }
 
 func (f Flags) isImmediate() bool {
-	return (f.ni&IMMEDIATE != 0)
+	return (f.ni == 0b_01)
 }
 
 func (f Flags) getOperandF3(op int, disp int) {
