@@ -83,11 +83,17 @@ func (m Machine) GetWordInt(addr int) int {
 }
 
 func (m Machine) setWord(addr, val int) {
-	m.memory[addr+2] = uint8(val % (1 << 8))
+	// m.memory[addr+2] = uint8(val % (1 << 8))
+	// val = val >> 8
+	// m.memory[addr+1] = uint8(val % (1 << 8))
+	// val = val >> 8
+	// m.memory[addr+2] = uint8(val % (1 << 8))
+
+	m.memory[addr+2] = uint8(val & 0xFF)
 	val = val >> 8
-	m.memory[addr+1] = uint8(val % (1 << 8))
+	m.memory[addr+1] = uint8(val & 0xFF)
 	val = val >> 8
-	m.memory[addr+2] = uint8(val % (1 << 8))
+	m.memory[addr] = uint8(val & 0xFF)
 
 }
 

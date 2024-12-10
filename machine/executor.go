@@ -289,8 +289,8 @@ func (m Machine) execSICF3F4(opcode int, flags Flags, operand int) bool {
 
 	}
 	// DEBUG
-	if opcode == MUL {
-		fmt.Printf("ni: %b, xbpe: %b, value: %d, valueByte: %d, operand: %d\nisSimple: %b\n", flags.ni, flags.xbpe, value, valueByte, operand, flags.isSimple())
+	if opcode == STA {
+		fmt.Printf("A: %d, value: %d, valueByte: %d, operand: %d\nisSimple: %b\n", m.getReg(A), value, valueByte, operand, flags.isSimple())
 	}
 	// DEBUG
 	//rA := &m.registers[A]

@@ -1,12 +1,14 @@
 00000            test   START   0    
 00000  01000D           LDA     #13    
                   
-00003  232003           MUL     multi    
+00003  272006           DIV     multi    
+                  
+00006  0F2003           STA     multi    
                   
                   
                   
-00006  3F2FFD    halt   J       halt    
+00009  3F2FFD    halt   J       halt    
                   
                   
-00009  000004    multi  WORD    4    
+0000C  000004    multi  WORD    4    
                   

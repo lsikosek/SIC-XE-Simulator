@@ -1,7 +1,9 @@
 test    START 0
         LDA #13
 
-        MUL multi
+        DIV multi
+
+        STA multi
 
 
 
